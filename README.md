@@ -29,7 +29,7 @@ $ mkdir build
 $ cd build
 $ cmake ..
 $ make
-$ # your copy data files into data folder
+$ # copy your data files into “data” folder
 $ ./panther data T D epsilon [thread_number]
 ````
 

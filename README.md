@@ -35,6 +35,6 @@ $ ./panther data T D epsilon [thread_number]
 
 ## Graph File (Input Document)
 
-Please check [this url](https://aminer.org/billboard/Panther) for more detail.
+I have prepared a simple sample [here](data/), you may also check [this url](https://aminer.org/billboard/Panther) for more information.
 
 

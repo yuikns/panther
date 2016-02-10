@@ -33,7 +33,7 @@ $ # copy your data files into “data” folder
 $ ./panther data T D epsilon [thread_number]
 ````
 
-## Graph file
+## Graph File (Input Document)
 
 Please check [this url](https://aminer.org/billboard/Panther) for more detail.
 

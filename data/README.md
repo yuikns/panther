@@ -20,7 +20,7 @@ The size of node and edge shall be given in the first line, and then each line g
 Path of graph file
 
 ```
-.
+project-binary-directory/
 ├── data
 │   └── sample.graph
 └── panther

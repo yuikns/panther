@@ -62,13 +62,13 @@ namespace rdsextr {
            fprintf(stderr,"[read_ds_size] error unknown val : %s\n",line);
            return;
         }
-        n = atoi(k); 
+        n = atoll(k); 
         k =  strtok(NULL,"\t");
         if( k == NULL) {
            fprintf(stderr,"[read_ds_size] erroe unknown val : %s\n",line);
             return ;
         }
-        m = atoi(k);
+        m = atoll(k);
     }
 
     void Rdsextr::load_link() {

@@ -12,14 +12,16 @@ ADD_LIBRARY(rdsextr_static STATIC ${LIBRDSEXTR_SRC})
 SET_TARGET_PROPERTIES(rdsextr_static PROPERTIES OUTPUT_NAME "rdsextr")
 
 
-ADD_DEPENDENCIES(rdsextr leveldb_proj)
-ADD_DEPENDENCIES(rdsextr_static leveldb_proj)
-
+ADD_DEPENDENCIES(rdsextr leveldb)
+ADD_DEPENDENCIES(rdsextr_static leveldb_static)
+#ADD_DEPENDENCIES(rdsextr_static snappy_static)
 
 TARGET_LINK_LIBRARIES(rdsextr m)
 TARGET_LINK_LIBRARIES(rdsextr pthread)
 TARGET_LINK_LIBRARIES(rdsextr leveldb)
+TARGET_LINK_LIBRARIES(rdsextr ${LEVELDB_LIBRARY})
 
 TARGET_LINK_LIBRARIES(rdsextr_static m)
 TARGET_LINK_LIBRARIES(rdsextr_static pthread)
 TARGET_LINK_LIBRARIES(rdsextr_static leveldb)
+TARGET_LINK_LIBRARIES(rdsextr_static ${LEVELDB_LIBRARY_STATIC})

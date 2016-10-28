@@ -18,10 +18,8 @@ ADD_DEPENDENCIES(rdsextr_static leveldb_static)
 
 TARGET_LINK_LIBRARIES(rdsextr m)
 TARGET_LINK_LIBRARIES(rdsextr pthread)
-TARGET_LINK_LIBRARIES(rdsextr leveldb)
 TARGET_LINK_LIBRARIES(rdsextr ${LEVELDB_LIBRARY})
 
 TARGET_LINK_LIBRARIES(rdsextr_static m)
 TARGET_LINK_LIBRARIES(rdsextr_static pthread)
-TARGET_LINK_LIBRARIES(rdsextr_static leveldb)
 TARGET_LINK_LIBRARIES(rdsextr_static ${LEVELDB_LIBRARY_STATIC})

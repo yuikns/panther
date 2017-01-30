@@ -97,6 +97,8 @@ namespace rdsextr {
                     _G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
                     _G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
                 }
+            } else {
+                break;
             }
         }
     }

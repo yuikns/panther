@@ -87,13 +87,17 @@ namespace rdsextr {
         _G->D = D;
         //_G->R = R;
 
+        int num_edge = 0;
         while(!feof(fp)){
-            int a, b;
-            double c;
-            fgets(line,100, fp);
-            sscanf(line, "%d\t%d\t%lf", &a, &b,&c);
-            _G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
-            _G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
+            if(num_edge++ < M) {
+                int a, b;
+                double c;
+                fgets(line,100, fp);
+                if(sscanf(line, "%d\t%d\t%lf", &a, &b,&c) != -1) {
+                    _G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
+                    _G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
+                }
+            }
         }
     }
 

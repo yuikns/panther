@@ -24,7 +24,7 @@ using std::set;
 using std::map;
 using std::pair;
 
-#define VERBOSE_LINK 0
+#define VERBOSE_LINK 1
 
 namespace rdsextr {
     
@@ -47,22 +47,28 @@ namespace rdsextr {
         _G->CTL_Q = q;
         
         int64_t th = RAND_MAX * p;
+        int num_edge = 0;
         while(!feof(fp)){
-            int a, b;
-            double c;
-            fgets(line,100, fp);
-            sscanf(line, "%d\t%d\t%lf", &a, &b,&c);
-            if(rand() <= th) {
-                _G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
-                _G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
-#if VERBOSE_LINK
-                printf("link: %d => %d (%lf) [Yes]\n", a, b, c);
-#endif
+            if(num_edge++ < M) {
+                int a, b;
+                double c;
+                fgets(line,100, fp);
+                if(sscanf(line, "%d\t%d\t%lf", &a, &b,&c) != -1) {
+                    if(rand() <= th) {
+                        _G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
+                        _G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
+        #if VERBOSE_LINK
+                        printf("link: %d => %d (%lf) [Yes]\n", a, b, c);
+        #endif
+                    } else {
+                        // ignore
+        #if VERBOSE_LINK
+                        printf("link: %d => %d (%lf) [No ]\n", a, b, c);
+        #endif
+                    }
+                }
             } else {
-                // ignore
-#if VERBOSE_LINK
-                printf("link: %d => %d (%lf) [No ]\n", a, b, c);
-#endif
+                break;
             }
         }
     }

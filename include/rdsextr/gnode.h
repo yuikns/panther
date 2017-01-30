@@ -131,9 +131,11 @@ public:
     }
     
     void append_path(std::vector<size_t>& node_v) {
-        path_mtx.lock();
-        paths.emplace_back(node_v);
-        path_mtx.unlock();
+        if(node_v.size() > 1) {
+            path_mtx.lock();
+            paths.emplace_back(node_v);
+            path_mtx.unlock();
+        }
     }
 
 private:

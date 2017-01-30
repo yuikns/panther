@@ -36,7 +36,7 @@
 #include "leveldb/write_batch.h"
 
 
-#define VERBOSE_PATH 0
+#define VERBOSE_PATH 1
 
 namespace rdsextr {
 
@@ -50,41 +50,46 @@ using std::string;
 
 std::mutex path_debug_mtx;
 
-void discov(size_t curr_node, set<size_t> escape_nodes, vector<size_t> path_nodes, int len, RGrapgh * _G) {
+// currently no escape
+void complete_discov(size_t curr_node, set<size_t> escape_nodes, vector<size_t> path_nodes, int len, RGrapgh * _G) {
     path_nodes.push_back(curr_node);
-    escape_nodes.insert(curr_node);
+    //escape_nodes.insert(curr_node);
     if(len > 1) {
         GNode * _node = _G -> get_node(curr_node);
         int cnt_discov = 0;
         for(auto & neighbor : _node->neighbors ) {
             size_t nxid = neighbor.id;
-            if(escape_nodes.find(nxid) == escape_nodes.end()) {
-                discov(nxid, escape_nodes, path_nodes, len - 1, _G);
-                cnt_discov++;
-            }
+            //if(escape_nodes.find(nxid) == escape_nodes.end()) {
+            complete_discov(nxid, escape_nodes, path_nodes, len - 1, _G);
+            cnt_discov++;
+            //}
         }
         if(cnt_discov == 0) {
             // terminate discovery before T comes
 #if VERBOSE_PATH
-            path_debug_mtx.lock();
-            printf("[PATH] ");
-            for(auto id: path_nodes) {
-                printf("%lu -> ", id);
+            if(path_nodes.size() > 1) {
+                path_debug_mtx.lock();
+                printf("[C:PATH:M] ");
+                for(auto id: path_nodes) {
+                    printf("%lu -> ", id);
+                }
+                printf("\n");
+                path_debug_mtx.unlock();
             }
-            printf("\n");
-            path_debug_mtx.unlock();
 #endif
             _G->append_path(path_nodes);
         }
     } else {
 #if VERBOSE_PATH
-        path_debug_mtx.lock();
-        printf("[PATH] ");
-        for(auto id: path_nodes) {
-            printf("%lu -> ", id);
+        if(path_nodes.size() > 1) {
+            path_debug_mtx.lock();
+            printf("[C:PATH:E] ");
+            for(auto id: path_nodes) {
+                printf("%lu -> ", id);
+            }
+            printf("\n");
+            path_debug_mtx.unlock();
         }
-        printf("\n");
-        path_debug_mtx.unlock();
 #endif
         _G->append_path(path_nodes);
     }
@@ -94,25 +99,67 @@ bool complete_path_generator_event_ctl(RGrapgh * _G , size_t nodeid_start, size_
     set<size_t> escape_nodes;
     vector<size_t> path_nodes;
     for(size_t i = nodeid_start; i < nodeid_end ; i++ ){
-        discov(i, escape_nodes, path_nodes, _G->T, _G);
+        complete_discov(i, escape_nodes, path_nodes, _G->T, _G);
     }
     return true;
 }
 
+
+
+// currently no escape
+void random_discov(size_t curr_node, set<size_t> escape_nodes, vector<size_t> path_nodes, int len, RGrapgh * _G, int64_t threshold) {
+    path_nodes.push_back(curr_node);
+    //escape_nodes.insert(curr_node);
+    if(len > 1) {
+        GNode * _node = _G -> get_node(curr_node);
+        int cnt_discov = 0;
+        for(auto & neighbor : _node->neighbors ) {
+            size_t nxid = neighbor.id;
+            //if(escape_nodes.find(nxid) == escape_nodes.end()) {
+            if(rand() <= threshold) {
+                random_discov(nxid, escape_nodes, path_nodes, len - 1, _G, threshold);
+                cnt_discov++;
+            }
+            //}
+        }
+        if(cnt_discov == 0) {
+            // terminate discovery before T comes
+#if VERBOSE_PATH
+            if(path_nodes.size() > 1) {
+                path_debug_mtx.lock();
+                printf("[R:PATH:M] ");
+                for(auto id: path_nodes) {
+                    printf("%lu -> ", id);
+                }
+                printf("\n");
+                path_debug_mtx.unlock();
+            }
+#endif
+            _G->append_path(path_nodes);
+        }
+    } else {
+#if VERBOSE_PATH
+        if(path_nodes.size() > 1) {
+            path_debug_mtx.lock();
+            printf("[R:PATH:E] ");
+            for(auto id: path_nodes) {
+                printf("%lu -> ", id);
+            }
+            printf("\n");
+            path_debug_mtx.unlock();
+        }
+#endif
+        _G->append_path(path_nodes);
+    }
+}
+
+
 bool random_path_generator_event_ctl(RGrapgh * _G , size_t nodeid_start, size_t nodeid_end) {
     set<size_t> escape_nodes;
     vector<size_t> path_nodes;
-    int64_t th = RAND_MAX * _G->CTL_Q;
+    int64_t threshold = RAND_MAX * _G->CTL_Q;
     for(size_t i = nodeid_start; i < nodeid_end ; i++ ){
-        if(rand() <= th) {
-            discov(i, escape_nodes, path_nodes, _G->T, _G);
-        } else {
-#if VERBOSE_PATH
-            path_debug_mtx.lock();
-            printf("[PATH] ignore \n");
-            path_debug_mtx.unlock();
-#endif
-        }
+        random_discov(i, escape_nodes, path_nodes, _G->T, _G, threshold);
     }
     return true;
 }

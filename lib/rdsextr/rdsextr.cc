@@ -26,7 +26,7 @@ using std::pair;
 
 namespace rdsextr {
 
-    void Rdsextr::init() {
+    void Rdsextr::start() {
         //eng.seed((unsigned long long)time(NULL));
         printf("initing ... \n");
         fflush(NULL);
@@ -85,7 +85,7 @@ namespace rdsextr {
         // Global Static Environment Setting
         _G->T = T;
         _G->D = D;
-        _G->R = R;
+        //_G->R = R;
 
         while(!feof(fp)){
             int a, b;
@@ -95,7 +95,6 @@ namespace rdsextr {
             _G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
             _G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
         }
-        
     }
 
     void Rdsextr::gen_random_path_parr(){

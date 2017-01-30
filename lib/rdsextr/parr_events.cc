@@ -66,27 +66,6 @@ bool accum_weight_setter_event(RGrapgh * _G , size_t node_start, size_t node_end
     return true;
 }
 
-inline size_t rpg_sim_bs(const std::vector<NeighborNode> & nabors, double val){
-    //accum_weight
-    if(val < nabors[0].accum_weight) return 0;
-    size_t low = 1; 
-    size_t high = nabors.size() - 1; // nabors[nabors.size() - 1] shall always 1
-    size_t middle;
-    while(low <= high){
-        middle = low + (high-low)/2;
-        if(val <= nabors[middle].accum_weight && val > nabors[middle-1].accum_weight){
-            return middle;
-        }
-        if(val < nabors[middle-1].accum_weight){
-            high = middle - 1;
-        }
-        if(val > nabors[middle].accum_weight){
-            low = middle + 1;
-        }
-    }
-    return 0; // error
-}
-
 bool random_path_generator_event(RGrapgh * _G , size_t pathid_start, size_t pathid_end ) {
     size_t nsize = _G->nsize();
     for(size_t pathid = pathid_start; pathid < pathid_end ; pathid++ ){
@@ -123,7 +102,7 @@ bool random_path_generator_event(RGrapgh * _G , size_t pathid_start, size_t path
 
 
 bool pathid_collector_event(RGrapgh * _G , size_t node_start, size_t node_end ) {
-    for(size_t pid = 0 ; pid < _G->R ; pid ++ ){
+    for(size_t pid = 0 ; pid < _G->R() ; pid ++ ){
         GPath * _path = _G->get_path(pid);
         if(_path != nullptr ) {
             /*
@@ -149,16 +128,15 @@ bool pathid_collector_event(RGrapgh * _G , size_t node_start, size_t node_end ) 
 bool clean_node_in_path_event(RGrapgh * _G , size_t pid_start, size_t pid_end) {
     for(size_t i = pid_start; i < pid_end; i ++ ) {
         vector<size_t> * _node_v = &(_G->get_path(i)->node_v);
+        if(_node_v == nullptr) {
+            printf("!!!!\n");
+            printf("i: %lu\n", i);
+        }
+        assert(_node_v != nullptr);
         set<size_t> node_s(_node_v->begin(),_node_v->end());
         _node_v->assign( node_s.begin(), node_s.end() );
     }
     return true;
-}
-
-inline std::string double2string(double d) {
-    char s[50];
-    snprintf(s,49,"%.15f",d);
-    return std::string(s);
 }
 
 bool path_sim_calculator_event(RGrapgh * _G , size_t nodeid_start, size_t nodeid_end){
@@ -219,12 +197,12 @@ bool path_sim_calculator_event(RGrapgh * _G , size_t nodeid_start, size_t nodeid
         std::string similar_structure_list_val("");
         if(top_node_vect.size() > 0 ) {
             //similar_path_list_val += std::to_string(top_node_vect[0].first) + ":"+ std::to_string((double)top_node_vect[0].second/_G->R);
-            similar_path_list_val += std::to_string(top_node_vect[0].first) + ":"+ double2string((double)top_node_vect[0].second/_G->R);
+            similar_path_list_val += std::to_string(top_node_vect[0].first) + ":"+ double2string((double)top_node_vect[0].second/_G->R());
             similar_structure_list_val += std::to_string(top_node_vect[0].second);
             for(size_t ix = 1 ; ix < top_node_vect.size(); ix++ ) {
                 similar_path_list_val += " ";
                 //similar_path_list_val += std::to_string(top_node_vect[ix].first) + ":"+ std::to_string((double)top_node_vect[ix].second/_G->R);
-                similar_path_list_val += std::to_string(top_node_vect[ix].first) + ":"+ double2string((double)top_node_vect[ix].second/_G->R);
+                similar_path_list_val += std::to_string(top_node_vect[ix].first) + ":"+ double2string((double)top_node_vect[ix].second/_G->R());
     
                 similar_structure_list_val += " ";
                 similar_structure_list_val += std::to_string(top_node_vect[ix].second);

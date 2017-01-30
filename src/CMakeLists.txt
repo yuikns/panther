@@ -37,3 +37,12 @@ TARGET_LINK_LIBRARIES(panther leveldb_static)
 
 #  executable properties
 SET_TARGET_PROPERTIES(panther PROPERTIES OUTPUT_NAME "panther")
+
+ADD_EXECUTABLE(panther_ctrl main_ctrl.cc)
+ADD_DEPENDENCIES(panther_ctrl rdsextr_static)
+TARGET_LINK_LIBRARIES(panther_ctrl pthread) # for leveldb
+TARGET_LINK_LIBRARIES(panther_ctrl rdsextr_static)
+TARGET_LINK_LIBRARIES(panther_ctrl leveldb_static)
+
+
+

@@ -23,10 +23,10 @@ MESSAGE(STATUS "SOURCE_DIR " ${PROJECT_SOURCE_DIR})
 
 # general flags 
 # SET(CMAKE_C_FLAGS "$ENV{CFLAGS}  -Wall -g -ggdb --std=c99 -v")
-#SET(CMAKE_C_FLAGS "$ENV{CFLAGS}  -Wall -g -ggdb --std=c99")
+# SET(CMAKE_C_FLAGS "$ENV{CFLAGS}  -Wall -g -ggdb --std=c99")
 SET(CMAKE_C_FLAGS "$ENV{CFLAGS}  -Wall  -O3 --std=c99")
 #SET(CMAKE_CXX_FLAGS " $ENV{CXXFLAGS}  -Wall -g -ggdb --std=c++11")
-#SET(CMAKE_CXX_FLAGS " $ENV{CXXFLAGS}  -Wall -g -ggdb --std=c++11")
+# SET(CMAKE_CXX_FLAGS " $ENV{CXXFLAGS}  -Wall -g -ggdb --std=c++11")
 SET(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -Wall -O3 --std=c++11")
 # debug cmake  -DCMAKE_BUILD_TYPE=debug ..
 SET(CMAKE_C_FLAGS_DEBUG "$ENV{CFLAGS}  -Wall -g -ggdb --std=c99 -pg")

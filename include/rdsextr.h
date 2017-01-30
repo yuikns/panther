@@ -38,7 +38,6 @@ public :
         similar_structure_filename("result/"+data+"_"+std::to_string(T)+"_"+std::to_string(D)+"_"+std::to_string(dis_epsilon)+".pathvec"),
         similar_path_file(fopen(similar_path_filename.c_str(),"w")),
         similar_structure_file(fopen(similar_structure_filename.c_str(),"w")){
-            init();
     }
     
     ~Rdsextr () {
@@ -53,8 +52,8 @@ public :
         }
     }
 
-    void init();
-    
+    void start();
+
     void read_ds_size(char * line , size_t &n, size_t &m); // readMandN
     void load_link();
     
@@ -67,6 +66,12 @@ public :
     //inline int calR() {
     //    return (int)(((double)0.5/(epsilon * epsilon))*((log2(T*(T-1)/2) + 1) + log((double)1/0.1)));
     //}
+    
+    // control group
+    // 
+    void start_ctl(double p, double q);
+    void load_link_ctl(double p, double q);
+    void gen_random_path_parr_ctl();
 
 private :
     const std::string data;

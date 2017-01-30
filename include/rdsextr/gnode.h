@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <queue> // queue
+#include <mutex>
 
 //#include "moodycamel/concurrentqueue.h"
 
@@ -45,17 +46,22 @@ public:
     //ConcurrentQueue<int> node_cq;
     //std::queue<int> node_q;
     //std::set<int> node_s;
+    GPath(std::vector<size_t>& nodes):node_v(nodes){}
+    GPath(){}
 };
 
 class RGrapgh{
 public:
+    
+    // N: Node Size
+    // R: Path Size
     RGrapgh(size_t node_size,size_t path_size,const std::string &dbdir = "similar_info.db",
             const std::string & similar_path_filename = "similar_path::",
             const std::string & similar_structure_filename = "similar_structure::"):
         node_size(node_size),
         path_size(path_size),
-        _nodes(new GNode[node_size]),
-        _paths(new GPath[path_size]),
+        nodes(std::vector<GNode>(node_size)),
+        paths(std::vector<GPath>(path_size)),
         dbdir(dbdir),
         similar_path_filename(similar_path_filename),
         similar_structure_filename(similar_structure_filename){
@@ -71,33 +77,34 @@ public:
     }
     
     ~RGrapgh(){
-        delete [] _nodes;
-        delete [] _paths;
+        //delete [] _nodes;
+        //delete [] _paths;
         delete db;
     }
 
     GNode * get_node(size_t offset){
         if(offset >= node_size) {
-            return NULL;
+            return nullptr;
         }else{
-            return &(_nodes[offset]);
+            return &(nodes[offset]);
         }
     }
 
     GPath * get_path(size_t offset){
         if(offset >= path_size) {
-            return NULL;
+            return nullptr;
         }else{
-            return &(_paths[offset]);
+            return &(paths[offset]);
         }
     }
 
     size_t nsize() const { return node_size;}
     size_t psize() const { return path_size;}
+    
+    size_t & R() { return path_size; }
 
     size_t T;
     size_t D;
-    size_t R;
     leveldb::DB* db;
     leveldb::Options options;
 
@@ -108,15 +115,38 @@ public:
     const std::string & get_similar_structure_filename() const {
         return similar_structure_filename;
     }
+    
+    double CTL_P;
+    double CTL_Q;
+    
+    size_t reset_psize() {
+        path_size = paths.size();
+        return path_size;
+    }
+    
+    void append_path(GPath& path){
+        path_mtx.lock();
+        paths.push_back(path);
+        path_mtx.unlock();
+    }
+    
+    void append_path(std::vector<size_t>& node_v) {
+        path_mtx.lock();
+        paths.emplace_back(node_v);
+        path_mtx.unlock();
+    }
 
 private:
     size_t node_size;
     size_t path_size;
-    GNode * _nodes;
-    GPath * _paths;
+    //GNode * _nodes;
+    //GPath * _paths;
+    std::vector<GNode> nodes;
+    std::vector<GPath> paths;
     const std::string dbdir;
     const std::string similar_path_filename; // file name , pathsim
     const std::string similar_structure_filename; // file name , pathvec
+    std::mutex path_mtx;
 };
 
 }  // namespace rdsextr

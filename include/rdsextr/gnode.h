@@ -60,11 +60,12 @@ public:
 class GPath{
 public:
     std::vector<size_t> node_v;
+    double weight;
     //ConcurrentQueue<int> node_cq;
     //std::queue<int> node_q;
     //std::set<int> node_s;
-    GPath(std::vector<size_t>& nodes):node_v(nodes){}
-    GPath(){}
+    GPath(std::vector<size_t>& nodes, double weight = 0):node_v(nodes), weight(weight){}
+    GPath():weight(0){}
 };
 
 class RGrapgh{
@@ -147,10 +148,10 @@ public:
         path_mtx.unlock();
     }
     
-    void append_path(std::vector<size_t>& node_v) {
+    void append_path(std::vector<size_t>& node_v, double weight = 0) {
         if(node_v.size() > 1) {
             path_mtx.lock();
-            paths.emplace_back(node_v);
+            paths.emplace_back(node_v, weight);
             path_mtx.unlock();
         }
     }

@@ -51,16 +51,23 @@ using std::string;
 std::mutex path_debug_mtx;
 
 // currently no escape
-void complete_discov(size_t curr_node, set<size_t> escape_nodes, vector<size_t> path_nodes, int len, RGrapgh * _G) {
+void complete_discov(size_t curr_node, set<size_t> escape_nodes, vector<size_t> path_nodes, int len, double cwp, RGrapgh * _G) {
     path_nodes.push_back(curr_node);
     //escape_nodes.insert(curr_node);
     if(len > 1) {
         GNode * _node = _G -> get_node(curr_node);
         int cnt_discov = 0;
+        
+        double sum_wp = 0.0;
+        for(auto & id_weight : _node->weights) {
+            sum_wp += id_weight.second;
+        }
+        sum_wp = sum_wp <= 0 ? 0.0001 : sum_wp;
+
         for(auto & id_weight : _node->weights) {
             size_t nxid = id_weight.first;
             //if(escape_nodes.find(nxid) == escape_nodes.end()) {
-            complete_discov(nxid, escape_nodes, path_nodes, len - 1, _G);
+            complete_discov(nxid, escape_nodes, path_nodes, len - 1, cwp * id_weight.second / sum_wp, _G);
             cnt_discov++;
             //}
         }
@@ -77,7 +84,7 @@ void complete_discov(size_t curr_node, set<size_t> escape_nodes, vector<size_t> 
                 path_debug_mtx.unlock();
             }
 #endif
-            _G->append_path(path_nodes);
+            _G->append_path(path_nodes, cwp);
         }
     } else {
 #if VERBOSE_PATH
@@ -91,7 +98,7 @@ void complete_discov(size_t curr_node, set<size_t> escape_nodes, vector<size_t> 
             path_debug_mtx.unlock();
         }
 #endif
-        _G->append_path(path_nodes);
+        _G->append_path(path_nodes, cwp);
     }
 }
 
@@ -99,7 +106,7 @@ bool complete_path_generator_event_ctl(RGrapgh * _G , size_t nodeid_start, size_
     set<size_t> escape_nodes;
     vector<size_t> path_nodes;
     for(size_t i = nodeid_start; i < nodeid_end ; i++ ){
-        complete_discov(i, escape_nodes, path_nodes, _G->T, _G);
+        complete_discov(i, escape_nodes, path_nodes, _G->T, 1, _G);
     }
     return true;
 }
@@ -170,32 +177,45 @@ bool path_sim_calculator_event_ctl(RGrapgh * _G , size_t nodeid_start, size_t no
     map<string,string> data_to_save;
     leveldb::DB* db = _G->db;
     for(size_t i = nodeid_start; i < nodeid_end ; i++ ){
-        map<size_t, size_t> nodes_with_weight_in_same_path;
+        map<size_t, double> nodes_with_weight_in_same_path;
         GNode * _current_node = _G->get_node(i);
         std::vector<size_t> * _current_path = &(_current_node->path);
+
+        double sum_wp = 0.0;
+        for(vector<size_t>::iterator iter = _current_path->begin();
+            iter != _current_path->end();
+            iter++) {
+                sum_wp += (_G->get_path(*iter)->weight);
+        }
+        
+        sum_wp = sum_wp >= 0.0 ? sum_wp : 0.0001;
+
         // key : node id , value : path id size
         for(vector<size_t>::iterator iter = _current_path->begin();
             iter != _current_path->end();
             iter++) {
-                vector<size_t> * _node_v = &(_G->get_path(*iter)->node_v);
+                GPath * _p = _G->get_path(*iter);
+                assert(_p != nullptr);
+                vector<size_t> * _node_v = &(_p->node_v);
+                double cwp = _p->weight / sum_wp;
                 //nodeset.insert(_G->get_path(*iter)->node.begin(),_G->get_path(*iter)->node.end());
                 for(vector<size_t>::const_iterator it = _node_v->begin();
                     it != _node_v->end();
                     it++) {
                         if(nodes_with_weight_in_same_path.find(*it) == nodes_with_weight_in_same_path.end())
                           nodes_with_weight_in_same_path[*it]=0;
-                        //printf("%lu => %lu, weight: %f \n", i, *it, _current_node->weight_to(*it));
-                        nodes_with_weight_in_same_path[*it] += _current_node->weight_to(*it);
+                        nodes_with_weight_in_same_path[*it] += cwp;
+                        //printf("%lu => %lu, weight: %f curr: %f\n", i, *it, cwp, nodes_with_weight_in_same_path[*it]);
                 }
         }
 
-        MinHeap<std::pair<size_t,size_t>> top_D_nodes(_G->D,rdsextr::pair_compare_by_value);
+        MinHeap<std::pair<size_t,double>> top_D_nodes(_G->D,rdsextr::pair_compare_by_value<size_t, double>);
 
-        for (std::map<size_t,size_t>::iterator it=nodes_with_weight_in_same_path.begin(); it!=nodes_with_weight_in_same_path.end(); ++it)
+        for (std::map<size_t,double>::iterator it=nodes_with_weight_in_same_path.begin(); it!=nodes_with_weight_in_same_path.end(); ++it)
             top_D_nodes.push(*it);
 
-        std::pair<size_t,size_t> val;
-        vector<std::pair<size_t,size_t>> top_node_vect;
+        std::pair<size_t,double> val;
+        vector<std::pair<size_t,double>> top_node_vect;
         while(top_D_nodes.pop(val)) {
             top_node_vect.push_back(val);
         }
@@ -209,12 +229,12 @@ bool path_sim_calculator_event_ctl(RGrapgh * _G , size_t nodeid_start, size_t no
         std::string similar_structure_list_val("");
         if(top_node_vect.size() > 0 ) {
             //similar_path_list_val += std::to_string(top_node_vect[0].first) + ":"+ std::to_string((double)top_node_vect[0].second/_G->R);
-            similar_path_list_val += std::to_string(top_node_vect[0].first) + ":"+ double2string((double)top_node_vect[0].second/_G->R());
+            similar_path_list_val += std::to_string(top_node_vect[0].first) + ":"+ double2string((double)top_node_vect[0].second);
             similar_structure_list_val += std::to_string(top_node_vect[0].second);
             for(size_t ix = 1 ; ix < top_node_vect.size(); ix++ ) {
                 similar_path_list_val += " ";
                 //similar_path_list_val += std::to_string(top_node_vect[ix].first) + ":"+ std::to_string((double)top_node_vect[ix].second/_G->R);
-                similar_path_list_val += std::to_string(top_node_vect[ix].first) + ":"+ double2string((double)top_node_vect[ix].second/_G->R());
+                similar_path_list_val += std::to_string(top_node_vect[ix].first) + ":"+ double2string((double)top_node_vect[ix].second);
     
                 similar_structure_list_val += " ";
                 similar_structure_list_val += std::to_string(top_node_vect[ix].second);

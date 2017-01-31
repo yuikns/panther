@@ -141,11 +141,13 @@ public:
 //    return a > b ? 1 : (a == b ? 0 : -1);
 //}
 
-inline int pair_compare_by_value(std::pair<size_t,size_t> a, std::pair<size_t,size_t> b){
+template<typename K, typename V>
+inline int pair_compare_by_value(std::pair<K, V> a, std::pair<K, V> b){
     return a.second > b.second ? 1 : 
         //(a.second == b.second ? (int_compare(a.first,b.first)) : -1);
         (a.second == b.second ? 0 : -1);
 }
+
 
 template<typename T>
 void vector_reverse(std::vector<T> & v) {

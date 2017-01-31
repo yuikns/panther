@@ -179,7 +179,7 @@ bool path_sim_calculator_event(RGrapgh * _G , size_t nodeid_start, size_t nodeid
                 }
         }
 
-        MinHeap<std::pair<size_t,size_t>> top_D_nodes(_G->D,rdsextr::pair_compare_by_value);
+        MinHeap<std::pair<size_t,size_t>> top_D_nodes(_G->D,rdsextr::pair_compare_by_value<size_t,size_t>);
 
         for (std::map<size_t,size_t>::iterator it=nodesInSamePath.begin(); it!=nodesInSamePath.end(); ++it)
             top_D_nodes.push(*it);

@@ -20,6 +20,7 @@ bool rds_parr_event_manager(RGrapgh * _G , size_t lower_bound, size_t upper_boun
 
 bool complete_path_generator_event_ctl(RGrapgh * _G , size_t lower_bound, size_t upper_bound );
 bool random_path_generator_event_ctl(RGrapgh * _G , size_t lower_bound, size_t upper_bound );
+bool path_sim_calculator_event_ctl(RGrapgh * _G , size_t lower_bound, size_t upper_bound );
 
 inline size_t rpg_sim_bs(const std::vector<NeighborNode> & nabors, double val){
     //accum_weight

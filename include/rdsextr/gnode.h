@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <set>
+#include <map>
 #include <queue> // queue
 #include <mutex>
 
@@ -21,12 +22,18 @@ namespace rdsextr {
 class NeighborNode {
 public:
     size_t id;
-    double weight;
+    //double weight;
     double accum_weight;
-    NeighborNode(size_t id,double weight,double accum_weight):
-        id(id),
-        weight(weight),
-        accum_weight(accum_weight) {
+    // NeighborNode(size_t id,double weight,double accum_weight):
+    //     id(id),
+    //     weight(weight),
+    //     accum_weight(accum_weight) {
+    // }
+    // NeighborNode(double weight = 0 ,double accum_weight = 0):
+    //     weight(weight),
+    //     accum_weight(accum_weight) {
+    // }
+    NeighborNode(size_t id,double accum_weight): id(id), accum_weight(accum_weight){
     }
     ~NeighborNode(){
     }
@@ -35,9 +42,19 @@ public:
 class GNode{
 public:
     std::vector<NeighborNode> neighbors;
+    std::map<size_t, double> weights;
     std::vector<size_t> path;
     //ConcurrentQueue<int> path_cq;
     //std::queue<int> path_q;
+    
+    double weight_to(size_t nid) {
+        return weights.find(nid) == weights.end() ? 0.0 : weights[nid];
+    }
+    
+    // thread unsafe
+    void add_neighbor_weight(size_t id,double weight){
+        weights.emplace(id, weight);
+    }
 };
 
 class GPath{

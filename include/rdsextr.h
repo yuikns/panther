@@ -72,6 +72,7 @@ public :
     void start_ctl(double p, double q);
     void load_link_ctl(double p, double q);
     void gen_random_path_parr_ctl();
+    void cal_path_sim_parr_ctl();
 
 private :
     const std::string data;

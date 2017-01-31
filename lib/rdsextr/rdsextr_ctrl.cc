@@ -55,8 +55,11 @@ namespace rdsextr {
                 fgets(line,100, fp);
                 if(sscanf(line, "%d\t%d\t%lf", &a, &b,&c) != -1) {
                     if(rand() <= th) {
-                        _G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
-                        _G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
+                        // _G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
+                        // _G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
+                        _G->get_node(a)->add_neighbor_weight(b,c);
+                        _G->get_node(b)->add_neighbor_weight(a,c);
+                        
         #if VERBOSE_LINK
                         printf("link: %d => %d (%lf) [Yes]\n", a, b, c);
         #endif
@@ -99,7 +102,7 @@ namespace rdsextr {
         printf("Time of generating random paths = %lf ms\n",timer.between("gen_random_path_start","gen_random_path_end"));
         fflush(NULL); // flush cache
         timer.label("cal_path_sim_start");
-        cal_path_sim_parr();
+        cal_path_sim_parr_ctl();
         timer.label("cal_path_sim_end");
         printf("Time of calcualating pathsim = %lf ms\n",timer.between("cal_path_sim_start","cal_path_sim_end"));
         fflush(NULL); // flush cache
@@ -137,6 +140,35 @@ namespace rdsextr {
         printf("[pathids] stopped, time cost : %.3f ms [%s] \n",timer.from("gen_random_path::pic_start"),(status?"OK":"FAILED"));
         fflush(NULL); // flush cache
         
+    }
+    
+    void Rdsextr::cal_path_sim_parr_ctl(){
+        // remove duplicate data in nodes
+        // only need when U use 'vector'
+        timer.label("cal_path_sim_parr::RD");
+        printf("[clean node in paths] starting...\n");
+        fflush(NULL); // flush cache
+        //path start -> path end
+        bool status = rds_parr_event_manager(_G,0,R,clean_node_in_path_event,par_size);
+        printf("[clean node in paths] stopped, time cost : %.3f ms [%s] \n",
+            timer.from("cal_path_sim_parr::RD"),(status?"OK":"FAILED"));
+        fflush(NULL); // flush cache
+        
+        timer.label("cal_path_sim_parr::psc_start");
+        printf("[sim cal] starting...\n");
+        fflush(NULL); // flush cache
+        
+        if(_G->CTL_P >= 1.0 && _G->CTL_Q >= 1.0) {
+            // count path with weight
+            status = rds_parr_event_manager(_G,0,N,path_sim_calculator_event_ctl,par_size);
+        } else {
+            // count path only
+            status = rds_parr_event_manager(_G,0,N,path_sim_calculator_event,par_size);
+        }
+        
+        
+        printf("[sim cal] stopped, time cost : %.3f ms [%s] \n",timer.from("cal_path_sim_parr::psc_start"),(status?"OK":"FAILED"));
+        fflush(NULL); // flush cache
     }
 
 }  // namespace rdsextr

@@ -94,8 +94,10 @@ namespace rdsextr {
                 double c;
                 fgets(line,100, fp);
                 if(sscanf(line, "%d\t%d\t%lf", &a, &b,&c) != -1) {
-                    _G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
-                    _G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
+                    //_G->get_node(a)->neighbors.push_back(NeighborNode(b,c,c));
+                    //_G->get_node(b)->neighbors.push_back(NeighborNode(a,c,c));
+                    _G->get_node(a)->add_neighbor_weight(b,c);
+                    _G->get_node(b)->add_neighbor_weight(a,c);
                 }
             } else {
                 break;

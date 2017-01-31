@@ -50,16 +50,22 @@ bool accum_weight_setter_event(RGrapgh * _G , size_t node_start, size_t node_end
         GNode * _node = _G->get_node(item);
         if(_node != NULL) {
             double sum = 0;
-            std::vector<NeighborNode> * _neighbors = &(_node->neighbors);
-            for(std::vector<NeighborNode>::iterator it=_neighbors->begin(); it != _neighbors->end() ; it++){
-                sum += it->weight;
+            //std::vector<NeighborNode> * _neighbors = &(_node->neighbors);
+            //for(std::vector<NeighborNode>::iterator it=_neighbors->begin(); it != _neighbors->end() ; it++){
+            //    sum += it->weight;
+            //}
+            //std::map<size_t, NeighborNode> & neighbors = _node->neighbors;
+            std::map<size_t, double> & weights = _node->weights;
+            for(auto & weight : weights) {
+                sum += weight.second;
             }
-            if(_node->neighbors.size() > 0 ) {
-                _node->neighbors[0].accum_weight /= sum;
-                std::vector<NeighborNode>::iterator it=_node->neighbors.begin();
-                for(it++ ; it != _node->neighbors.end() ; it++){
-                    it->accum_weight = it->accum_weight / sum + ((it - 1) -> accum_weight);
-                }
+            sum = sum > 0 ? sum : 0.001;
+            double priv = 0.0;
+            for(auto & weight : weights) {
+                sum += weight.second;
+                double acw = weight.second / sum + priv;
+                _node->neighbors.emplace_back(weight.first, acw );
+                priv = acw;
             }
         }
     }
@@ -128,10 +134,6 @@ bool pathid_collector_event(RGrapgh * _G , size_t node_start, size_t node_end ) 
 bool clean_node_in_path_event(RGrapgh * _G , size_t pid_start, size_t pid_end) {
     for(size_t i = pid_start; i < pid_end; i ++ ) {
         vector<size_t> * _node_v = &(_G->get_path(i)->node_v);
-        if(_node_v == nullptr) {
-            printf("!!!!\n");
-            printf("i: %lu\n", i);
-        }
         assert(_node_v != nullptr);
         set<size_t> node_s(_node_v->begin(),_node_v->end());
         _node_v->assign( node_s.begin(), node_s.end() );

@@ -30,7 +30,7 @@ public :
         D(m_d),
         epsilon(m_epsilon),
         par_size(par_size),
-        R((size_t)(((double)0.5/(epsilon * epsilon))*((log2(T*(T-1)/2) + 1) + log((double)1/0.1)))),
+        R((size_t)(( (double)0.5/(epsilon * epsilon) )* ( ceil(log2( T*(T+1)/2) + 1) + log((double)1/0.1) ) )),
         dis_epsilon(round(epsilon*1000000)),
         network_filename("data/" + data + ".graph"),
         map_filename("data/" + data + ".dict"),
